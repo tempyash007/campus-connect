@@ -1,0 +1,184 @@
+{
+	"info": {
+		"_postman_id": "lab4-student-api-express-mongodb",
+		"name": "RESTful Web Services – Lab 4 (Student API + MongoDB)",
+		"description": "Postman Collection for DA-IICT Web Services & SOA Lab 4 RESTful Student Management API built with Express.js and MongoDB Atlas. Includes positive and negative test cases for GET, POST, PUT, and DELETE.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. GET All Students",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/students",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"students"
+					]
+				},
+				"description": "Returns list of all students from MongoDB database (200 OK)."
+			},
+			"response": []
+		},
+		{
+			"name": "2. GET Student by ID (Valid)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/students/65f1a2b3c4d5e6f7a8b9c0d1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"students",
+						"65f1a2b3c4d5e6f7a8b9c0d1"
+					]
+				},
+				"description": "Retrieves student by MongoDB ID (200 OK)."
+			},
+			"response": []
+		},
+		{
+			"name": "3. GET Student by ID (Non-existent - 404 Not Found)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/students/65f1a2b3c4d5e6f7a8b9c999",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"students",
+						"65f1a2b3c4d5e6f7a8b9c999"
+					]
+				},
+				"description": "Negative test case for non-existent MongoDB ID (404 Not Found)."
+			},
+			"response": []
+		},
+		{
+			"name": "4. POST Create Student (Valid)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Kabir Verma\",\n  \"email\": \"kabir.verma@example.com\",\n  \"course\": \"Computer Science\",\n  \"semester\": 4\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/students",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"students"
+					]
+				},
+				"description": "Creates a new student entity in MongoDB Atlas (201 Created)."
+			},
+			"response": []
+		},
+		{
+			"name": "5. POST Create Student (Invalid Payload - 400 Bad Request)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"\",\n  \"email\": \"invalid-email\",\n  \"course\": \"\",\n  \"semester\": -2\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/students",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"students"
+					]
+				},
+				"description": "Negative test case for invalid/incomplete student payload (400 Bad Request)."
+			},
+			"response": []
+		},
+		{
+			"name": "6. PUT Update Student (Valid)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Aarav Patel (Updated)\",\n  \"email\": \"aarav@example.com\",\n  \"course\": \"Computer Science & AI\",\n  \"semester\": 6\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/students/65f1a2b3c4d5e6f7a8b9c0d1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"students",
+						"65f1a2b3c4d5e6f7a8b9c0d1"
+					]
+				},
+				"description": "Updates existing student in MongoDB (200 OK)."
+			},
+			"response": []
+		},
+		{
+			"name": "7. DELETE Student (Valid)",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/students/65f1a2b3c4d5e6f7a8b9c0d2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"students",
+						"65f1a2b3c4d5e6f7a8b9c0d2"
+					]
+				},
+				"description": "Deletes student from MongoDB (200 OK)."
+			},
+			"response": []
+		}
+	]
+}

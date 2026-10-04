@@ -1,0 +1,36 @@
+# ============================================================
+# .dockerignore – Student REST API
+# Files and folders excluded from the Docker build context
+# ============================================================
+
+# Node.js dependencies (will be installed fresh inside the image)
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Environment variable files (contain secrets – never include in image)
+.env
+.env.*
+!.env.example
+
+# Version control
+.git
+.gitignore
+
+# Editor and OS artifacts
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+
+# Test and coverage output
+coverage
+*.test.js
+
+# Logs
+logs
+*.log
+
+# Documentation (not needed at runtime)
+README.md
+postman

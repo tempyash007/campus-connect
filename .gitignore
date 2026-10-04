@@ -1,0 +1,40 @@
+# ============================================================
+# .gitignore – Lab 7 Microservices & API Gateway
+# ============================================================
+
+# Dependency directories
+**/node_modules/
+node_modules/
+
+# Environment variables & secret config files
+.env
+.env.local
+.env.development
+.env.production
+!.env.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Editor & OS files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+Assignment-Lab-7.pdf
+
+# Diagnostic / temporary outputs & build zips
+*.zip
+*.tmp
+*.temp
+.cache/

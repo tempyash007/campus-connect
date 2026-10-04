@@ -1,0 +1,39 @@
+# ============================================================
+# compose.yaml – Student Application Stack
+# DA-IICT Web Services & SOA – Lab 5 Assignment
+# ============================================================
+
+services:
+
+  # ── Student REST API Service ──────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: student-api
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      MONGODB_URI: mongodb://mongodb:27017/student_db
+    depends_on:
+      - mongodb
+    networks:
+      - student-network
+    restart: on-failure
+
+  # ── MongoDB Database Service ──────────────────────────────
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    volumes:
+      - student-mongo-data:/data/db
+    networks:
+      - student-network
+
+networks:
+  student-network:
+    driver: bridge
+
+volumes:
+  student-mongo-data:
