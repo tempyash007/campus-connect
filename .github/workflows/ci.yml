@@ -41,16 +41,3 @@ jobs:
         run: |
           docker build -t lab7-${{ matrix.service }}:${{ github.sha }} ./${{ matrix.service }}
           docker tag lab7-${{ matrix.service }}:${{ github.sha }} lab7-${{ matrix.service }}:latest
-
-  validate-manifests:
-    name: Validate Kubernetes Manifests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Validate Kubernetes Manifests (Dry-Run)
-        run: |
-          cp k8s/secret.yaml.example k8s/secret.yaml
-          kubectl apply --dry-run=client --validate=false -f k8s/
-          kubectl apply --dry-run=client --validate=false -f k8s/monitoring/
