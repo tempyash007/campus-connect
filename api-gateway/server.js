@@ -1,4 +1,4 @@
-require('dotenv').config();
+try { require('dotenv').config(); } catch (e) {}
 const express = require('express');
 const cors = require('cors');
 const { createProxyMiddleware } = require('http-proxy-middleware');
@@ -12,6 +12,81 @@ const PRODUCT_SERVICE_URL = process.env.PRODUCT_SERVICE_URL || 'http://localhost
 const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || 'http://localhost:3003';
 
 app.use(cors());
+
+// Prometheus Metrics Instrumentation
+let register, httpRequestDurationMicroseconds, httpRequestsTotal;
+try {
+  const promClient = require('prom-client');
+  register = new promClient.Registry();
+  register.setDefaultLabels({ app: 'api-gateway' });
+  promClient.collectDefaultMetrics({ register });
+
+  httpRequestsTotal = new promClient.Counter({
+    name: 'http_requests_total',
+    help: 'Total number of HTTP requests processed by API Gateway',
+    labelNames: ['method', 'route', 'status'],
+    registers: [register]
+  });
+
+  httpRequestDurationMicroseconds = new promClient.Histogram({
+    name: 'http_request_duration_seconds',
+    help: 'Duration of HTTP requests in seconds',
+    labelNames: ['method', 'route', 'status'],
+    buckets: [0.01, 0.05, 0.1, 0.3, 0.5, 1, 1.5, 2, 5],
+    registers: [register]
+  });
+} catch (e) {
+  // Graceful fallback metrics counter if prom-client is not yet installed locally
+  const requestCounts = {};
+  httpRequestsTotal = {
+    inc: ({ method, route, status }) => {
+      const key = `${method}_${route}_${status}`;
+      requestCounts[key] = (requestCounts[key] || 0) + 1;
+    }
+  };
+  httpRequestDurationMicroseconds = {
+    startTimer: () => () => {}
+  };
+  register = {
+    metrics: async () => {
+      let out = '# HELP http_requests_total Total number of HTTP requests processed\n# TYPE http_requests_total counter\n';
+      for (const [key, val] of Object.entries(requestCounts)) {
+        const [method, route, status] = key.split('_');
+        out += `http_requests_total{method="${method}",route="${route}",status="${status}"} ${val}\n`;
+      }
+      out += 'up 1\n';
+      return out;
+    },
+    contentType: 'text/plain; version=0.0.4; charset=utf-8'
+  };
+}
+
+// Request Timing & Metrics Middleware
+app.use((req, res, next) => {
+  const endTimer = httpRequestDurationMicroseconds.startTimer ? httpRequestDurationMicroseconds.startTimer() : null;
+  res.on('finish', () => {
+    const route = req.baseUrl || req.path || req.originalUrl || 'unknown';
+    const status = res.statusCode ? res.statusCode.toString() : 'unknown';
+    if (httpRequestsTotal && httpRequestsTotal.inc) {
+      httpRequestsTotal.inc({ method: req.method, route, status });
+    }
+    if (endTimer) {
+      endTimer({ method: req.method, route, status });
+    }
+  });
+  next();
+});
+
+// Prometheus Scrape Endpoint
+app.get('/metrics', async (req, res) => {
+  try {
+    res.setHeader('Content-Type', register.contentType || 'text/plain; version=0.0.4; charset=utf-8');
+    const metrics = await register.metrics();
+    res.send(metrics);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
 
 // Global Request Logging Middleware
 app.use((req, res, next) => {
@@ -98,12 +173,14 @@ app.use((req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🌐 API Gateway running on port ${PORT}`);
-  console.log(`📍 Service Registry Mappings:`);
-  console.log(`   - /users    -> ${USER_SERVICE_URL}`);
-  console.log(`   - /products -> ${PRODUCT_SERVICE_URL}`);
-  console.log(`   - /orders   -> ${ORDER_SERVICE_URL}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🌐 API Gateway running on port ${PORT}`);
+    console.log(`📍 Service Registry Mappings:`);
+    console.log(`   - /users    -> ${USER_SERVICE_URL}`);
+    console.log(`   - /products -> ${PRODUCT_SERVICE_URL}`);
+    console.log(`   - /orders   -> ${ORDER_SERVICE_URL}`);
+  });
+}
 
 module.exports = app;

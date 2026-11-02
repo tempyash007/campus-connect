@@ -1,0 +1,66 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build-test:
+    name: Build & Test (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api-gateway
+          - user-service
+          - product-service
+          - order-service
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache-dependency-path: '${{ matrix.service }}/package.json'
+
+      - name: Install Dependencies
+        working-directory: ${{ matrix.service }}
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Run Tests
+        working-directory: ${{ matrix.service }}
+        run: npm test
+
+      - name: Build Docker Image
+        run: |
+          docker build -t lab7-${{ matrix.service }}:${{ github.sha }} ./${{ matrix.service }}
+          docker tag lab7-${{ matrix.service }}:${{ github.sha }} lab7-${{ matrix.service }}:latest
+
+  validate-manifests:
+    name: Validate Kubernetes Manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Validate Kubernetes Manifests (Dry-Run)
+        run: |
+          kubectl apply --dry-run=client -f k8s/configmap.yaml
+          kubectl apply --dry-run=client -f k8s/secret.yaml
+          kubectl apply --dry-run=client -f k8s/gateway-deployment.yaml
+          kubectl apply --dry-run=client -f k8s/gateway-service.yaml
+          kubectl apply --dry-run=client -f k8s/user-deployment.yaml
+          kubectl apply --dry-run=client -f k8s/user-service.yaml
+          kubectl apply --dry-run=client -f k8s/product-deployment.yaml
+          kubectl apply --dry-run=client -f k8s/product-service.yaml
+          kubectl apply --dry-run=client -f k8s/order-deployment.yaml
+          kubectl apply --dry-run=client -f k8s/order-service.yaml
+          kubectl apply --dry-run=client -f k8s/monitoring/prometheus.yaml
+          kubectl apply --dry-run=client -f k8s/monitoring/grafana.yaml

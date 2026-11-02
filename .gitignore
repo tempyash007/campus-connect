@@ -12,6 +12,8 @@ node_modules/
 .env.development
 .env.production
 !.env.example
+k8s/secret.yaml
+!k8s/secret.yaml.example
 
 # Logs
 logs
@@ -32,6 +34,9 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 Assignment-Lab-7.pdf
+Lab_8_Kubernetes_CICD_Monitoring_Task_Formatted.pdf
+LAB_8_IMPLEMENTATION_PLAN.md
+screenshot/
 
 # Diagnostic / temporary outputs & build zips
 *.zip
